@@ -1,0 +1,10 @@
+c:\users\rumster\documents\visual studio 2015\Projects\VectorGraphicsEditor\VectorGraphicsEditor\bin\Debug\VectorGraphicsEditor.exe.config
+c:\users\rumster\documents\visual studio 2015\Projects\VectorGraphicsEditor\VectorGraphicsEditor\bin\Debug\VectorGraphicsEditor.exe
+c:\users\rumster\documents\visual studio 2015\Projects\VectorGraphicsEditor\VectorGraphicsEditor\bin\Debug\VectorGraphicsEditor.pdb
+c:\users\rumster\documents\visual studio 2015\Projects\VectorGraphicsEditor\VectorGraphicsEditor\obj\Debug\VectorGraphicsEditor.csprojResolveAssemblyReference.cache
+c:\users\rumster\documents\visual studio 2015\Projects\VectorGraphicsEditor\VectorGraphicsEditor\obj\Debug\VectorGraphicsEditor.Form1.resources
+c:\users\rumster\documents\visual studio 2015\Projects\VectorGraphicsEditor\VectorGraphicsEditor\obj\Debug\VectorGraphicsEditor.Properties.Resources.resources
+c:\users\rumster\documents\visual studio 2015\Projects\VectorGraphicsEditor\VectorGraphicsEditor\obj\Debug\VectorGraphicsEditor.csproj.GenerateResource.Cache
+c:\users\rumster\documents\visual studio 2015\Projects\VectorGraphicsEditor\VectorGraphicsEditor\obj\Debug\VectorGraphicsEditor.exe
+c:\users\rumster\documents\visual studio 2015\Projects\VectorGraphicsEditor\VectorGraphicsEditor\obj\Debug\VectorGraphicsEditor.pdb
+C:\Users\Rumster\Documents\Visual Studio 2015\Projects\VectorGraphicsEditor\VectorGraphicsEditor\obj\Debug\Rumster.Figures.Canvas.resources
