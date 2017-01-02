@@ -129,7 +129,7 @@ namespace Rumster.Figures
                     switch (currentType)
                     {
                         case DrawMode.line:
-                            urManager.Execute(new AddFigureCommand(figures,new Line(this, e.Location, _figureWidth, _currentLineColor, (DashStyle)_currentDashStyle)));
+                            urManager.Execute(new AddFigureCommand(figures, new Line(this, e.Location, _figureWidth, _currentLineColor, (DashStyle)_currentDashStyle)));
                             break;
                         case DrawMode.poliline:
                             urManager.Execute(new AddFigureCommand(figures, new Poliline(this, e.Location, _figureWidth, _currentLineColor, (DashStyle)_currentDashStyle)));
@@ -147,79 +147,77 @@ namespace Rumster.Figures
                             urManager.Execute(new AddFigureCommand(figures, new Circle(this, e.Location, _figureWidth, _currentLineColor, _currentFillColor, (DashStyle)_currentDashStyle)));
                             break;
                         case DrawMode.ellipseFill:
-                            urManager.Execute(new AddFigureCommand(figures,new Ellipse(this, e.Location, _figureWidth, _currentLineColor, _currentFillColor, (DashStyle)_currentDashStyle)));
+                            urManager.Execute(new AddFigureCommand(figures, new Ellipse(this, e.Location, _figureWidth, _currentLineColor, _currentFillColor, (DashStyle)_currentDashStyle)));
                             break;
                         case DrawMode.polygonFill:
-                            urManager.Execute(new AddFigureCommand(figures,new Poligon(this, e.Location, _figureWidth, _currentLineColor, _currentFillColor, (DashStyle)_currentDashStyle)));
+                            urManager.Execute(new AddFigureCommand(figures, new Poligon(this, e.Location, _figureWidth, _currentLineColor, _currentFillColor, (DashStyle)_currentDashStyle)));
                             break;
                     }
-                }
-                figures.ForEach(x => x.ActivateMarkers(false));
-                if (currentType == DrawMode.editor)
-                {
-                    _selectedFigure = FindFigureByPoint(e.Location);
-                    if (_selectedFigure != null)
+
+                    figures.ForEach(x => x.ActivateMarkers(false));
+                    if (currentType == DrawMode.editor)
                     {
-                        _selectedFigure.ActivateMarkers(true);
-                        if (selector != null)
-                            if (_selectedFigure != selector)
+                        _selectedFigure = FindFigureByPoint(e.Location);
+                        if (_selectedFigure != null)
+                        {
+                            if (selector != null)
                             {
                                 selector.Dispose();
                                 selector = null;
                             }
+                        }
+                        else
+                        {
+                            selector = new Selector(this, e.Location, 1, Color.Black, 0);
+                            selector.selectorUp += delegate (object sender, MouseEventArgs ee) { figures.FindAll(x => selector.IsFigureInsideSelector(x)).ForEach(x => selector.selectedFigures.Add(x)); };
+                        }
+                        Invalidate();
                     }
                     else
                     {
-                        if (selector != null)
+                        if (_selectedFigure != null)
                         {
-                            selector.Dispose();
-                            selector = null;
+                            _selectedFigure.ActivateMarkers(false);
+                            _selectedFigure = null;
                         }
-                        selector = new Selector(this, e.Location, 1, Color.Black, 0);
-                        selector.selectorUp += delegate (object sender, MouseEventArgs ee) { figures.FindAll(x => selector.IsFigureInsideSelector(x)).ForEach(x => selector.selectedFigures.Add(x));};
-                    }
-                    startDragPoint = e.Location;
-                    Invalidate();
-                }
-                else
-                {
-                    if (_selectedFigure != null)
-                    {
-                        _selectedFigure.ActivateMarkers(false);
-                        _selectedFigure = null;
                     }
                 }
-
                 if (e.Button == MouseButtons.Right)
                     if (_selectedFigure != null)
                         contextMenuStrip1.Show(PointToScreen(e.Location));
             }
         }
-
-        Point startDragPoint;
+        
 
         protected override void OnMouseMove(MouseEventArgs e)
         {
             base.OnMouseMove(e);
             if (currentType != DrawMode.editor)
                 return;
-            if (e.Button == MouseButtons.Left)
-            {
-                if (_selectedFigure != null)
-                {
-                    _selectedFigure.SetOffset(e.Location.X - startDragPoint.X, e.Location.Y - startDragPoint.Y);
-                    Invalidate();
-                }
-            }
-            else
-            {
+            
                 Figure figure = FindFigureByPoint(e.Location);
                 if (figure != null)
                     Cursor = Cursors.Hand;
                 else
                     Cursor = Cursors.Default;
-            }
-            startDragPoint = e.Location;
+        }
+
+        protected override void OnMouseClick(MouseEventArgs e)
+        {
+            base.OnMouseClick(e);
+            if (currentType != DrawMode.editor)
+                return;
+            _selectedFigure = FindFigureByPoint(e.Location);
+            //if (_selectedFigure != null)
+            //{
+            //    _selectedFigure.ActivateMarkers(true);
+            //    if (selector != null)
+            //        if (_selectedFigure != selector)
+            //        {
+            //            selector.Dispose();
+            //            selector = null;
+            //        }
+            //}
         }
 
         public void OnKeyDown(Object secnder,KeyEventArgs e)
@@ -229,26 +227,13 @@ namespace Rumster.Figures
                 switch (e.KeyCode)
                 {
                     case Keys.C:
-                        if (_selectedFigure == null)
-                            return;
-                        copycutObject = _selectedFigure.Clone();
+                        OnCopy();
                         break;
                     case Keys.X:
-                        if (_selectedFigure == null)
-                            return;
-                        copycutObject = _selectedFigure.Clone();
-                        _selectedFigure.ActivateMarkers(false);
-                        figures.Remove(_selectedFigure);
-                        _selectedFigure = null;
+                        OnCut();
                         break;
                     case Keys.V:
-                        if (copycutObject == null)
-                            return;
-                        if (_selectedFigure != null)
-                            _selectedFigure.ActivateMarkers(false);
-                        figures.Add(copycutObject.Clone());
-                        _selectedFigure = figures[figures.Count - 1];
-                        _selectedFigure.ActivateMarkers(true);
+                        OnPaste();
                         break;
                     case Keys.Z:
                         if(urManager.CanUndo)
@@ -265,9 +250,8 @@ namespace Rumster.Figures
         }
 
 
-        Figure FindFigureByPoint(Point p)
+        private Figure FindFigureByPoint(Point p)
         {
-            //затем ищем среди плоских фигур
             if (selector != null)
             {
                 if (selector.selectedFigures.Count == 0)
@@ -330,15 +314,14 @@ namespace Rumster.Figures
                 copycutObject = selector.Clone();
                 selector.Dispose();
                 foreach(Figure f in selector.selectedFigures)
-                    figures.Remove(f);
+                    urManager.Execute(new RemoveFigureCommand(figures,f));
                 selector = null;
                 return;
             }
             if (_selectedFigure == null)
                 return;
             copycutObject = _selectedFigure.Clone();
-            _selectedFigure.ActivateMarkers(false);
-            figures.Remove(_selectedFigure);
+            urManager.Execute(new RemoveFigureCommand(figures, _selectedFigure));
             _selectedFigure = null;
         }
 
@@ -346,10 +329,10 @@ namespace Rumster.Figures
         {
             if (copycutObject == null)
                 return;
-            if (copycutObject.GetType()==typeof(Selector))
+            if (copycutObject.GetType()==(typeof(Selector)))
             {
-                foreach (Figure f in selector.selectedFigures)
-                    figures.Add(f.Clone());
+                foreach (Figure f in ((Selector)copycutObject).selectedFigures)
+                    figures.Add(f);
                 selector = (Selector)copycutObject;
                 return;
             }
@@ -358,6 +341,18 @@ namespace Rumster.Figures
             figures.Add(copycutObject.Clone());
             _selectedFigure = figures[figures.Count - 1];
             _selectedFigure.ActivateMarkers(true);
+        }
+
+        public void OnCopy()
+        {
+            if (selector != null)
+            {
+                copycutObject = selector.Clone();
+                return;
+            }
+            if (_selectedFigure == null)
+                return;
+            copycutObject = _selectedFigure.Clone();
         }
 
         public void Clear()

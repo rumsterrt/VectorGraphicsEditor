@@ -12,10 +12,10 @@ namespace Rumster.Figures
         private FigureProperties properties;
         private FigureProperties prevProperties;
 
-        public UpdateFigureCommand(Figure figure, FigureProperties properties)
+        public UpdateFigureCommand(Figure figure)
         {
             this.figure = figure;
-            this.properties = properties;
+            this.properties = figure.GetProperties();
         }
 
         public string Name

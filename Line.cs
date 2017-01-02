@@ -28,16 +28,17 @@ namespace Rumster.Figures
             _points.ForEach(x => x.markerUpEventHandler += delegate (object s, MouseEventArgs mea)
             {
                 x.Position = canvas.GetCanvasPoint(canvas.PointToClient(Cursor.Position));
-                canvas.urManager.Execute(new UpdateFigureCommand(this, GetProperties()));
+                canvas.urManager.Execute(new UpdateFigureCommand(this));
                 canvas.Refresh();
             });
             _points[1].Position = canvas.GetCanvasPoint(e.Location);
             canvas.Refresh();
-            canvas.MouseDown -= CanvasMouseDown;
+            canvas.MouseDown -= OnCanvasMouseDown;
             canvas.MouseUp -= OnCanvasMouseUp;
             canvas.MouseMove -= OnCanvasMouseMove;
+            canvas.MouseDown += OnCanvasMouseStartDrag;
             _isAdded = true;
-            canvas.urManager.Execute(new UpdateFigureCommand(this, GetProperties()));
+            //canvas.urManager.Execute(new UpdateFigureCommand(this, GetProperties()));
         }
 
         public override Figure Clone()

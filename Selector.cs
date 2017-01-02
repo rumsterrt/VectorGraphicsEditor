@@ -49,6 +49,8 @@ namespace Rumster.Figures
 
         protected override void OnCanvasMouseUp(object sender, MouseEventArgs e)
         {
+            canvas.MouseMove -= OnCanvasMouseMove;
+            canvas.MouseUp -= OnCanvasMouseUp;
             if (!_isAdded)
             {
                 if (selectorUp != null)
@@ -56,9 +58,6 @@ namespace Rumster.Figures
                 if (!IsCorrectSize() || selectedFigures.Count == 0)
                 {
                     Dispose();
-                    canvas.MouseDown -= CanvasMouseDown;
-                    canvas.MouseUp -= OnCanvasMouseUp;
-                    canvas.MouseMove -= OnCanvasMouseMove;
                     canvas.Refresh();
                     return;
                 }
@@ -71,9 +70,6 @@ namespace Rumster.Figures
                 float right = selectedFigures.Max(x => x.GetRect().Right);
                 _points[0].Position = new PointF(left, top);
                 _points[1].Position = new PointF(right, bottom);
-                canvas.MouseDown -= CanvasMouseDown;
-                canvas.MouseUp -= OnCanvasMouseUp;
-                canvas.MouseMove -= OnCanvasMouseMove;
                 canvas.Refresh();
             }
         }
@@ -87,7 +83,8 @@ namespace Rumster.Figures
 
         protected override void OnCanvasMouseMove(object sender, MouseEventArgs e)
         {
-            if (!_isAdded&& !_isDispose)
+            canvas.MouseDown -= OnCanvasMouseDown;
+            if (!_isAdded)
             {
                 _points[1].Position = e.Location;
                 if (selectorMove != null)
@@ -96,9 +93,9 @@ namespace Rumster.Figures
             }
         }
 
-        protected override void CanvasMouseDown(object sender, MouseEventArgs e)
+        protected override void OnCanvasMouseDown(object sender, MouseEventArgs e)
         {
-            if (e.Button == MouseButtons.Left&& !_isDispose)
+            if (e.Button == MouseButtons.Left)
                 _points.Add(new Marker(this, e.Location));
         }
 
@@ -109,20 +106,17 @@ namespace Rumster.Figures
 
         public override void Draw(Graphics gr)
         {
-            if (!_isDispose)
-            {
-                PointF Point1 = _points[0].Position;
-                PointF Point2 = _points[1].Position;
-                gr.DrawRectangle(_linePen, Point2.X - Point1.X >= 0 ? Point1.X : Point1.X - Math.Abs(Point2.X - Point1.X), Point2.Y - Point1.Y >= 0 ? Point1.Y : Point1.Y - Math.Abs(Point2.Y - Point1.Y), Math.Abs(Point2.X - Point1.X), Math.Abs(Point2.Y - Point1.Y));
-                selectorMarkers[0].Position = new PointF(Point1.X, Point1.Y);
-                selectorMarkers[1].Position = new PointF(Point1.X + (Point2.X - Point1.X) / 2, Point1.Y);
-                selectorMarkers[2].Position = new PointF(Point2.X, Point1.Y);
-                selectorMarkers[3].Position = new PointF(Point2.X, Point1.Y + (Point2.Y - Point1.Y) / 2);
-                selectorMarkers[4].Position = new PointF(Point2.X, Point2.Y);
-                selectorMarkers[5].Position = new PointF(Point2.X - (Point2.X - Point1.X) / 2, Point2.Y);
-                selectorMarkers[6].Position = new PointF(Point1.X, Point2.Y);
-                selectorMarkers[7].Position = new PointF(Point1.X, Point1.Y + (Point2.Y - Point1.Y) / 2);
-            }
+            PointF Point1 = _points[0].Position;
+            PointF Point2 = _points[1].Position;
+            gr.DrawRectangle(_linePen, Point2.X - Point1.X >= 0 ? Point1.X : Point1.X - Math.Abs(Point2.X - Point1.X), Point2.Y - Point1.Y >= 0 ? Point1.Y : Point1.Y - Math.Abs(Point2.Y - Point1.Y), Math.Abs(Point2.X - Point1.X), Math.Abs(Point2.Y - Point1.Y));
+            selectorMarkers[0].Position = new PointF(Point1.X, Point1.Y);
+            selectorMarkers[1].Position = new PointF(Point1.X + (Point2.X - Point1.X) / 2, Point1.Y);
+            selectorMarkers[2].Position = new PointF(Point2.X, Point1.Y);
+            selectorMarkers[3].Position = new PointF(Point2.X, Point1.Y + (Point2.Y - Point1.Y) / 2);
+            selectorMarkers[4].Position = new PointF(Point2.X, Point2.Y);
+            selectorMarkers[5].Position = new PointF(Point2.X - (Point2.X - Point1.X) / 2, Point2.Y);
+            selectorMarkers[6].Position = new PointF(Point1.X, Point2.Y);
+            selectorMarkers[7].Position = new PointF(Point1.X, Point1.Y + (Point2.Y - Point1.Y) / 2);
         }
 
         public override void DrawSelection(Graphics gr)
@@ -226,6 +220,11 @@ namespace Rumster.Figures
         {
             int currentMarker = Array.FindIndex(selectorMarkers, x => x.isDrag);
             canvas.Refresh();
+        }
+
+        public override Figure Clone()
+        {
+            return new Selector(this);
         }
     }
 }

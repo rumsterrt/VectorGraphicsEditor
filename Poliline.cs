@@ -15,10 +15,9 @@ namespace Rumster.Figures
             _points.Add(new Marker(this, point1));
             _linePen = new Pen(color, width);
             _linePen.DashStyle = dashStyle;
-            canvas.MouseDown += CanvasMouseDown;
+            canvas.MouseDown += OnCanvasMouseDown;
             canvas.MouseUp += OnCanvasMouseUp;
             canvas.MouseMove += OnCanvasMouseMove;
-            AddZeroFigureState();
         }
 
         public Poliline(Poliline other)
@@ -35,14 +34,13 @@ namespace Rumster.Figures
             _points.ForEach(x => x.markerUpEventHandler += delegate (object s, MouseEventArgs mea)
             {
                 x.Position = canvas.GetCanvasPoint(Cursor.Position);
-                canvas.urManager.Execute(new UpdateFigureCommand(this, GetProperties()));
+                canvas.urManager.Execute(new UpdateFigureCommand(this));
                 canvas.Refresh();
             });
             _linePen = new Pen(other.lineColor, other.lineWidth);
-            AddZeroFigureState();
         }
 
-        protected override void CanvasMouseDown(object sender, MouseEventArgs e)
+        protected override void OnCanvasMouseDown(object sender, MouseEventArgs e)
         {
             if (e.Button == MouseButtons.Left)
                 _points.Add(new Marker(this, canvas.GetCanvasPoint(e.Location)));
@@ -56,16 +54,47 @@ namespace Rumster.Figures
                 _points.ForEach(x => x.markerUpEventHandler += delegate (object s, MouseEventArgs mea)
                 {
                     x.Position = canvas.GetCanvasPoint(canvas.PointToClient(Cursor.Position));
-                    canvas.urManager.Execute(new UpdateFigureCommand(this, GetProperties()));
+                    canvas.urManager.Execute(new UpdateFigureCommand(this));
                     canvas.Refresh();
                 });
-                canvas.MouseDown -= CanvasMouseDown;
+                canvas.MouseDown -= OnCanvasMouseDown;
                 canvas.MouseUp -= OnCanvasMouseUp;
                 canvas.MouseMove -= OnCanvasMouseMove;
+                canvas.MouseDown += OnCanvasMouseStartDrag;
                 _isAdded = true;
                 canvas.Refresh();
-                canvas.urManager.Execute(new UpdateFigureCommand(this, GetProperties()));
             }
+        }
+
+        private Point startDragPoint;
+        protected override void OnCanvasMouseStartDrag(object sender, MouseEventArgs e)
+        {
+            if (e.Button == MouseButtons.Left&&IsInsidePoint(e.Location))
+            {
+                ActivateMarkers(true);
+                startDragPoint = e.Location;
+                canvas.MouseMove += OnCanvasMouseDrag;
+                canvas.MouseUp += OnCanvasMouseEndDrag;
+            }
+            else
+            {
+                ActivateMarkers(false);
+            }
+        }
+
+        protected override void OnCanvasMouseDrag(object sender, MouseEventArgs e)
+        {
+            SetOffset(e.Location.X - startDragPoint.X, e.Location.Y - startDragPoint.Y);
+            startDragPoint = e.Location;
+        }
+
+        protected override void OnCanvasMouseEndDrag(object sender, MouseEventArgs e)
+        {
+            SetOffset(e.Location.X - startDragPoint.X, e.Location.Y - startDragPoint.Y);
+            canvas.urManager.Execute(new UpdateFigureCommand(this));
+            canvas.MouseMove -= OnCanvasMouseDrag;
+            canvas.MouseUp -= OnCanvasMouseEndDrag;
+            canvas.Refresh();
         }
 
         protected override void OnCanvasMouseUp(object sender, MouseEventArgs e)

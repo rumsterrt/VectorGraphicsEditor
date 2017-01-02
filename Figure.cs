@@ -65,9 +65,12 @@ namespace Rumster.Figures
             }
         }
 
-        protected abstract void CanvasMouseDown(object sender, MouseEventArgs e);
+        protected abstract void OnCanvasMouseDown(object sender, MouseEventArgs e);
         protected abstract void OnCanvasMouseUp(object sender, MouseEventArgs e);
         protected abstract void OnCanvasMouseMove(object sender, MouseEventArgs e);
+        protected abstract void OnCanvasMouseStartDrag(object sender, MouseEventArgs e);
+        protected abstract void OnCanvasMouseDrag(object sender, MouseEventArgs e);
+        protected abstract void OnCanvasMouseEndDrag(object sender, MouseEventArgs e);
         public abstract void Draw(Graphics gr);
         public abstract void DrawSelection(Graphics gr);
         public abstract bool IsInsidePoint(Point p);
@@ -122,18 +125,12 @@ namespace Rumster.Figures
         public virtual void SetOffset(float dx, float dy)
         {
             _points.ForEach(x => x.Position = new PointF(x.Position.X + dx, x.Position.Y + dy));
-            canvas.urManager.Execute(new UpdateFigureCommand(this, GetProperties()));
             canvas.Refresh();
         }
 
         public FigureProperties GetProperties()
         {
             return new FigureProperties(_linePen, fillColor, _points.ConvertAll(new Converter<Marker, PointF>(Marker.MarkerToPointF)),isDispose);
-        }
-
-        protected void AddZeroFigureState()
-        {
-            canvas.urManager.Execute(new UpdateFigureCommand(this, GetProperties()));
         }
     }
 }
